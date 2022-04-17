@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Install deps: apt install -qy tar zstd
+
 ARCHIVE_PATHS=(
   /etc
   /opt
