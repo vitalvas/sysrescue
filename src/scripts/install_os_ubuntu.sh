@@ -146,7 +146,7 @@ if [ -f "/usr/local/sbin/unminimize" ]; then
 fi
 
 apt install -qy --no-install-recommends ${pkg_install} grub-common grub-efi-amd64 grub-pc-bin systemd initramfs-tools \
-	dbus-user-session systemd-sysv init init-system-helpers lsb-release isc-dhcp-client mdadm \
+	dbus-user-session systemd-sysv init init-system-helpers lsb-release isc-dhcp-client mdadm cron \
 	ifupdown ethtool iputils-ping net-tools openssh-server iproute2 vim util-linux locales less wget curl dnsutils ntp \
 	rsyslog bash-completion
 
