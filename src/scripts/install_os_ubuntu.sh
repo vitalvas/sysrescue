@@ -126,7 +126,7 @@ mount --rbind --make-rslave /sys ${MOUNT_PATH}/sys
 echo 'nameserver 1.1.1.1' > ${MOUNT_PATH}/etc/resolv.conf
 echo 'nameserver 8.8.8.8' >> ${MOUNT_PATH}/etc/resolv.conf
 
-pkg_install="linux-image-generic lldpd"
+pkg_install="linux-image-generic lldpd smartmontools"
 
 systemd-detect-virt -q && {
   pkg_install="linux-image-virtual qemu-guest-agent haveged cloud-guest-utils"
@@ -147,7 +147,8 @@ fi
 
 apt install -qy --no-install-recommends ${pkg_install} grub-common grub-efi-amd64 grub-pc-bin systemd initramfs-tools \
 	dbus-user-session systemd-sysv init init-system-helpers lsb-release isc-dhcp-client mdadm \
-	ifupdown ethtool iputils-ping net-tools openssh-server iproute2 vim util-linux locales less wget curl dnsutils ntp
+	ifupdown ethtool iputils-ping net-tools openssh-server iproute2 vim util-linux locales less wget curl dnsutils ntp \
+	rsyslog
 
 locale-gen en_US.UTF-8
 
