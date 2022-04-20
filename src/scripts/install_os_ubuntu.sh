@@ -24,7 +24,13 @@ fi
 
 DEVICES=()
 
-for device in $(ls /dev/sd* | egrep '/sd([a-z]{1})$'); do
+device_list=$(ls /dev/sd* | egrep '/sd([a-z]{1})$')
+
+if [ ! -z "${DISK_DEV}" ]; then
+  device_list=${DISK_DEV}  
+fi
+
+for device in ${device_list}; do
   wipefs --all --force --quiet ${device}
 
   parted -s ${device} mklabel gpt
