@@ -126,7 +126,7 @@ mount --rbind --make-rslave /sys ${MOUNT_PATH}/sys
 echo 'nameserver 1.1.1.1' > ${MOUNT_PATH}/etc/resolv.conf
 echo 'nameserver 8.8.8.8' >> ${MOUNT_PATH}/etc/resolv.conf
 
-pkg_install="linux-image-generic lldpd smartmontools"
+pkg_install="linux-image-generic lldpd smartmontools ifenslave vlan"
 
 systemd-detect-virt -q && {
   pkg_install="linux-image-virtual qemu-guest-agent haveged cloud-guest-utils"
