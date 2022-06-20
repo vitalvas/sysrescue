@@ -105,7 +105,7 @@ sleep 2
 printf "\n==> Download OS image\n\n"
 
 if [ ! -f "ubuntu-2004-base-amd64.tar.gz" ]; then
-  wget -O ubuntu-2004-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.1-base-amd64.tar.gz
+  wget -O ubuntu-2004-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.4-base-amd64.tar.gz
 fi
 
 
@@ -209,4 +209,3 @@ for dev in ${DEVICES[*]}; do
 done
 
 rm ${MOUNT_PATH}/sysinstall.sh
-
