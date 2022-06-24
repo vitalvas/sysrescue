@@ -36,11 +36,12 @@ for path in ${ARCHIVE_PATHS[*]}; do
   fi
 done
 
-filename=${HOSTNAME}-$(date +"%Y-%m-%d").tar.zst
+filename=${HOSTNAME}-$(date +"%Y-%m-%d").tar
 
 if [ -f "/${filename}" ]; then
   rm /${filename}
 fi
 
-tar --zstd -cf /${filename} ${current_archive_paths}
+tar -cf /${filename} ${current_archive_paths}
+zstd --rm -19 /${filename}
 
