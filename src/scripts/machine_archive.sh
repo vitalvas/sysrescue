@@ -1,10 +1,12 @@
 #!/bin/bash
 
+set -e
+
 # Install deps: apt install -qy tar zstd
 
 if [ -f "/etc/lsb-release" ]; then
-  which tar || apt install -qy tar
-  which zstd || apt install -qy zstd
+  which tar >/dev/null || apt install -qy tar
+  which zstd >/dev/null || apt install -qy zstd
 fi
 
 ARCHIVE_PATHS=(
