@@ -2,6 +2,11 @@
 
 # Install deps: apt install -qy tar zstd
 
+if [ -f "/etc/lsb-release" ]; then
+  which tar || apt install -qy tar
+  which zstd || apt install -qy zstd
+fi
+
 ARCHIVE_PATHS=(
   /etc
   /opt
