@@ -3,6 +3,7 @@
 set -e
 
 MOUNT_PATH="/mnt"
+VERSION=${VERSION:-22.04}
 
 if [ -f "/sys/firmware/efi/config_table" ]; then
   echo "EFI Detected!"
@@ -104,16 +105,35 @@ sleep 2
 
 printf "\n==> Download OS image\n\n"
 
-if [ ! -f "ubuntu-2004-base-amd64.tar.gz" ]; then
-  wget -O ubuntu-2004-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.4-base-amd64.tar.gz
-fi
+FILE_ARCHIVE=""
+case ${VERSION} in
+  "20.04")
+    if [ ! -f "ubuntu-2004-base-amd64.tar.gz" ]; then
+      wget -O ubuntu-2004-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.4-base-amd64.tar.gz
+    fi
+    FILE_ARCHIVE="ubuntu-2004-base-amd64.tar.gz"
+    ;;
+
+  "22.04")
+    if [ ! -f "ubuntu-2204-base-amd64.tar.gz" ]; then
+      wget -O ubuntu-2204-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-amd64.tar.gz
+    fi
+    FILE_ARCHIVE="ubuntu-2004-base-amd64.tar.gz"
+    ;;
+
+  *)
+    echo "Unknown ubuntu version: ${VERSION}"
+    exit 1
+    ;;
+esac
+
 
 
 printf "\n==> Extract rootfs\n\n"
 
 mount -t ext4 ${DEVICE_UUID_PATH} ${MOUNT_PATH}
 
-tar -xzf ubuntu-2004-base-amd64.tar.gz -C ${MOUNT_PATH}
+tar -xzf ${FILE_ARCHIVE} -C ${MOUNT_PATH}
 
 
 printf "\n==> Deploing OS\n\n"
@@ -209,3 +229,4 @@ for dev in ${DEVICES[*]}; do
 done
 
 rm ${MOUNT_PATH}/sysinstall.sh
+
