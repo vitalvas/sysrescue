@@ -22,6 +22,7 @@ ARCHIVE_PATHS=(
   /var/lib
   /usr/local/bin
   /usr/local/sbin
+  /usr/local/openresty/nginx/conf
 )
 
 HOSTNAME=$(hostname -f)
