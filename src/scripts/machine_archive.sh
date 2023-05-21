@@ -51,5 +51,5 @@ if [ -f "/${filename}" ]; then
 fi
 
 tar -cf /${filename} ${current_archive_paths}
-zstd --rm -19 /${filename}
+zstd --rm -3 /${filename}
 
