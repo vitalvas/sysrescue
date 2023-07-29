@@ -229,4 +229,4 @@ for dev in ${DEVICES[*]}; do
 done
 
 rm ${MOUNT_PATH}/sysinstall.sh
-
+rm ${MOUNT_PATH}/install.log
