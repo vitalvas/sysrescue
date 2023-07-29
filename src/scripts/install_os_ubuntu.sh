@@ -197,6 +197,7 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet dhcp
+iface eth0 inet6 dhcp
 EOD
 
 cat <<EOD>/etc/hosts
@@ -219,6 +220,24 @@ wget -q -O /root/.ssh/authorized_keys https://github.com/vitalvas.keys
 chmod 600 /root/.ssh/authorized_keys
 
 systemctl enable ssh.service
+
+cat <<EOD>/etc/systemd/system/firstboot.service
+[Unit]
+Description=First time boot script
+After=network.target
+ConditionFileNotEmpty=/boot/firstboot.sh
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/bin/bash /boot/firstboot.sh
+ExecStartPost=/usr/bin/systemctl disable firstboot.service
+
+[Install]
+WantedBy=multi-user.target 
+EOD
+
+systemctl enable firstboot.service
 
 EOF
 
