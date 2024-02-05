@@ -107,13 +107,6 @@ printf "\n==> Download OS image\n\n"
 
 FILE_ARCHIVE=""
 case ${VERSION} in
-  "20.04")
-    if [ ! -f "ubuntu-2004-base-amd64.tar.gz" ]; then
-      wget -O ubuntu-2004-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/20.04/release/ubuntu-base-20.04.5-base-amd64.tar.gz
-    fi
-    FILE_ARCHIVE="ubuntu-2004-base-amd64.tar.gz"
-    ;;
-
   "22.04")
     if [ ! -f "ubuntu-2204-base-amd64.tar.gz" ]; then
       wget -O ubuntu-2204-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.2-base-amd64.tar.gz
