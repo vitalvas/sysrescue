@@ -19,14 +19,15 @@ class Installer:
         parser.add_argument('--version', type=str, help='OS version', default='22.04')
         parser.add_argument('-d', '--drive', type=str, nargs="+", help='Drive to install OS',  default=self._list_hard_drives())
         parser.add_argument('--rootfs-fstype', type=str, help='Rootfs filesystem type', default='ext4')
-        parser.add_argument('--rootfs-size', type=int, help='Rootfs size in GB', default=0)
+        parser.add_argument('--rootfs-size', type=int, help='Rootfs size', default='100%')
+        parser.add_argument('--hostname', type=str, help='Hostname', default='localhost')
 
         return self.parser.parse_args()
 
     @staticmethod
     def _get_rootfs(os: str, version: str):
         data = {
-            "ubuntu/22.04": "http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.2-base-amd64.tar.gz",
+            "ubuntu/22.04": "http://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04.3-base-amd64.tar.gz",
         }
 
         if f"{os}/{version}" in data:
