@@ -5,7 +5,7 @@ set -x -e -o pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 BUILDROOT=/media
-BUILDNAME=sysrescue
+BUILDNAME="sysrescue-$(date +'%Y%m%d-%H%M')"
 export BUILDHOME="${BUILDROOT}/${BUILDNAME}"
 
 apt update
