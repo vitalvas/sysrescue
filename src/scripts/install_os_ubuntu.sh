@@ -114,6 +114,13 @@ case ${VERSION} in
     FILE_ARCHIVE="ubuntu-2204-base-amd64.tar.gz"
     ;;
 
+  "24.04")
+    if [ ! -f "ubuntu-2404-base-amd64.tar.gz" ]; then
+      wget -O ubuntu-2404-base-amd64.tar.gz http://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-amd64.tar.gz
+    fi
+    FILE_ARCHIVE="ubuntu-2404-base-amd64.tar.gz"
+    ;;
+
   *)
     echo "Unknown ubuntu version: ${VERSION}"
     exit 1
