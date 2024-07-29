@@ -14,7 +14,7 @@ fi
 printf "\n==> Disk configuration\n\n"
 
 if [ ! -z "$(ls /dev/* | grep '/md')" ]; then
-  for md_device in $(ls /dev/md* | egrep '/dev/md([0-9]+)'); do
+  for md_device in $(ls /dev/md* | grep -E '/dev/md([0-9]+)'); do
     drives=$(mdadm -vQD ${md_device} | grep -o '/dev/sd.*')
 
     mdadm --stop ${md_device}
@@ -25,7 +25,7 @@ fi
 
 DEVICES=()
 
-device_list=$(ls /dev/sd* | egrep '/sd([a-z]{1})$')
+device_list=$(ls /dev/sd* | grep -E '/sd([a-z]{1})$')
 
 if [ ! -z "${DISK_DEV}" ]; then
   device_list=${DISK_DEV}  
