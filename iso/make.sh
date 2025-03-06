@@ -48,7 +48,8 @@ apt install -y \
     grub-common grub-gfxpayload-lists grub-pc grub-pc-bin grub2-common iproute2 \
     openssh-server apt-transport-https wget curl vim nano lldpd mdadm cloud-utils \
     less smartmontools iperf3 iputils-ping nmap vlan git tcpdump chrony \
-    netplan.io wpasupplicant wireguard wireguard-tools ifupdown isc-dhcp-client openvpn
+    netplan.io wpasupplicant wireguard wireguard-tools ifupdown isc-dhcp-client openvpn \
+    hashcat ipmitool ipmiutil screen tmux
 
 apt install -y --no-install-recommends linux-generic
 
