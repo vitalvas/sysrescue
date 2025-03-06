@@ -1,4 +1,4 @@
-#!/bin/bash
+a!/bin/bash
 
 set -x -e -o pipefail
 
@@ -43,21 +43,25 @@ ln -fs /etc/machine-id /var/lib/dbus/machine-id
 dpkg-divert --local --rename --add /sbin/initctl
 ln -s /bin/true /sbin/initctl
 
-apt install -y \
+export DEBIAN_FRONTEND=noninteractive
+
+apt install -y --no-install-recommends \
     sudo ubuntu-standard casper discover os-prober net-tools wireless-tools locales \
     grub-common grub-gfxpayload-lists grub-pc grub-pc-bin grub2-common iproute2 \
     openssh-server apt-transport-https wget curl vim nano lldpd mdadm cloud-utils \
     less smartmontools iperf3 iputils-ping nmap vlan git tcpdump chrony \
     netplan.io wpasupplicant wireguard wireguard-tools ifupdown isc-dhcp-client openvpn \
-    hashcat ipmitool ipmiutil screen tmux
+    ipmitool ipmiutil screen tmux lvm2 nvme-cli xfsprogs xfsdump
 
 apt install -y --no-install-recommends linux-generic
 
-apt purge -qy ubuntu-pro-client ubuntu-pro-client-l10n linux-headers-generic
+apt purge -qy ubuntu-pro-client ubuntu-pro-client-l10n linux-headers-generic libllvm16t64
 dpkg -l | awk '$2~"linux-headers" {print $2}' | xargs apt purge -qy
 
 apt-get autoremove -y
 dpkg-reconfigure locales
+
+echo -e "root123\nroot123" | passwd root
 
 cat <<EOL> /etc/netplan/10-init.yaml
 network:
@@ -90,14 +94,30 @@ truncate -s 0 /etc/machine-id
 rm /sbin/initctl
 dpkg-divert --rename --remove /sbin/initctl
 
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat <<EOL> /etc/systemd/system/getty@tty1.service.d/autologin.conf
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin root --noclear %I \$TERM
+EOL
+
+cat <<EOL> /etc/modules-load.d/live.conf
+ipmi_devintf
+bonding
+EOL
+
 apt-get clean
 rm -rf /tmp/* ~/.bash_history
+#rm -rf /etc/ssh/ssh_host_*
 umount /proc
 umount /sys
 umount /dev/pts
 export HISTSIZE=0
 EOF
 
+for row in $(grep "${BUILDHOME}/chroot" /proc/mounts | cut -f2 -d ' ' | sort -r); do
+  umount -l ${row}
+done
 
 rm -Rf ${BUILDHOME}/image
 
@@ -107,17 +127,55 @@ cp ${BUILDHOME}/chroot/boot/initrd.img-**-**-generic ${BUILDHOME}/image/casper/i
 
 touch ${BUILDHOME}/image/ubuntu
 
+DEFAULT_KERNEL_PARAM="nopersistent noprompt consoleblank=0 systemd.show_status=true panic=20 hostname=sysrescue build=${BUILDNAME}"
+
 cat <<EOF > ${BUILDHOME}/image/isolinux/grub.cfg
 search --set=root --file /ubuntu
 
+insmod efi_gop
+insmod efi_uga
 insmod all_video
+insmod videotest
+insmod videoinfo
 
 set default="0"
-set timeout=10
+set timeout=30
 
-menuentry "Ubuntu ${BUILDNAME}" {
-   linux /casper/vmlinuz boot=casper nopersistent toram hostname=${BUILDNAME} ---
+menuentry "${BUILDNAME} - default options" {
+   set gfxpayload=keep
+   linux /casper/vmlinuz boot=casper ${DEFAULT_KERNEL_PARAM} ---
    initrd /casper/initrd
+}
+
+menuentry "${BUILDNAME} - copy system to RAM (copytoram)" {
+   set gfxpayload=keep
+   linux /casper/vmlinuz boot=casper ${DEFAULT_KERNEL_PARAM} toram ---
+   initrd /casper/initrd
+}
+
+menuentry "${BUILDNAME} - basic display drivers (nomodeset)" {
+   set gfxpayload=keep
+   linux /casper/vmlinuz boot=casper ${DEFAULT_KERNEL_PARAM} nomodeset ---
+   initrd /casper/initrd
+}
+
+menuentry 'Start EFI Shell' {
+    insmod fat
+    insmod chain
+    terminal_output console
+    chainloader /EFI/shell.efi
+}
+
+menuentry 'EFI Firmware setup' {
+    fwsetup
+}
+
+menuentry 'Reboot' {
+    reboot
+}
+
+menuentry 'Power off' {
+    halt
 }
 EOF
 
@@ -127,7 +185,7 @@ if [ -f "${BUILDHOME}/image/casper/filesystem.squashfs" ]; then
     rm ${BUILDHOME}/image/casper/filesystem.squashfs
 fi
 
-mksquashfs ${BUILDHOME}/chroot ${BUILDHOME}/image/casper/filesystem.squashfs -comp zstd -b 256k -always-use-fragments -no-recovery
+mksquashfs ${BUILDHOME}/chroot ${BUILDHOME}/image/casper/filesystem.squashfs -comp zstd -b 256k -always-use-fragments -no-recovery -noappend
 
 cd ${BUILDHOME}
 
@@ -175,8 +233,8 @@ cat /usr/lib/grub/i386-pc/cdboot.img ${BUILDHOME}/image/isolinux/core.img > ${BU
 
 /bin/bash -c "(find . -type f -print0 | xargs -0 md5sum | grep -v -e 'md5sum.txt' -e 'bios.img' -e 'efiboot.img' > ${BUILDHOME}/image/md5sum.txt)"
 
-if [ -f "${BUILDHOME}/ubuntu-${BUILDNAME}.iso" ]; then
-    rm ${BUILDHOME}/ubuntu-${BUILDNAME}.iso
+if [ -f "${BUILDHOME}/${BUILDNAME}.iso" ]; then
+    rm ${BUILDHOME}/${BUILDNAME}.iso
 fi
 
 xorriso \
@@ -184,7 +242,7 @@ xorriso \
     -iso-level 3 \
     -full-iso9660-filenames \
     -volid "Ubuntu ${BUILDNAME}" \
-    -output "${BUILDHOME}/ubuntu-${BUILDNAME}.iso" \
+    -output "${BUILDHOME}/${BUILDNAME}.iso" \
     -eltorito-boot boot/grub/bios.img \
     -no-emul-boot \
     -boot-load-size 4 \
