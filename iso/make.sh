@@ -4,6 +4,8 @@ set -x -e -o pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
+ROOT_PASSWD="root123"
+
 BUILDROOT=/media
 BUILDNAME="sysrescue-$(date +'%Y%m%d-%H%M')"
 export BUILDHOME="${BUILDROOT}/${BUILDNAME}"
@@ -46,14 +48,56 @@ ln -s /bin/true /sbin/initctl
 export DEBIAN_FRONTEND=noninteractive
 
 apt install -y --no-install-recommends \
-    sudo ubuntu-standard casper discover os-prober net-tools wireless-tools locales \
-    grub-common grub-gfxpayload-lists grub-pc grub-pc-bin grub2-common iproute2 \
-    openssh-server apt-transport-https wget curl vim nano lldpd mdadm cloud-utils \
-    less smartmontools iperf3 iputils-ping nmap vlan git tcpdump chrony \
-    netplan.io wpasupplicant wireguard wireguard-tools ifupdown isc-dhcp-client openvpn \
-    ipmitool ipmiutil screen tmux lvm2 nvme-cli xfsprogs xfsdump
+    apt-transport-https \
+    avahi-daemon \
+    casper \
+    chrony \
+    cloud-utils \
+    curl \
+    discover \
+    git \
+    grub-common \
+    grub-gfxpayload-lists \
+    grub-pc \
+    grub-pc-bin \
+    grub2-common \
+    ifupdown \
+    iperf3 \
+    ipmitool \
+    ipmiutil \
+    iproute2 \
+    iputils-ping \
+    isc-dhcp-client \
+    less \
+    linux-generic \
+    lldpd \
+    locales \
+    lvm2 \
+    mdadm \
+    nano \
+    net-tools \
+    netplan.io \
+    nmap \
+    nvme-cli \
+    openssh-server \
+    openvpn \
+    os-prober \
+    screen \
+    smartmontools \
+    sudo \
+    tcpdump \
+    tmux \
+    ubuntu-standard \
+    vim \
+    vlan \
+    wget \
+    wireguard \
+    wireguard-tools \
+    wireless-tools \
+    wpasupplicant \
+    xfsdump \
+    xfsprogs
 
-apt install -y --no-install-recommends linux-generic
 
 apt purge -qy ubuntu-pro-client ubuntu-pro-client-l10n linux-headers-generic libllvm16t64
 dpkg -l | awk '$2~"linux-headers" {print $2}' | xargs apt purge -qy
@@ -61,7 +105,7 @@ dpkg -l | awk '$2~"linux-headers" {print $2}' | xargs apt purge -qy
 apt-get autoremove -y
 dpkg-reconfigure locales
 
-echo -e "root123\nroot123" | passwd root
+echo -e "${ROOT_PASSWD}\n${ROOT_PASSWD}" | passwd root
 
 cat <<EOL> /etc/netplan/10-init.yaml
 network:
@@ -76,8 +120,6 @@ network:
 EOL
 
 chmod 600 /etc/netplan/10-init.yaml
-
-systemctl enable ssh.service
 
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh/
@@ -106,9 +148,51 @@ ipmi_devintf
 bonding
 EOL
 
+mkdir -p /etc/avahi/services/
+cat <<EOL> /etc/avahi/services/ssh.service
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">%h</name>
+  <service>
+    <type>_ssh._tcp</type>
+    <port>22</port>
+  </service>
+</service-group>
+EOL
+
+cat <<EOL> /etc/systemd/system/firstboot.service
+[Unit]
+Description=First boot script
+
+[Service]
+Type=oneshot
+ExecStart=/opt/sysrescue/bin/firstboot.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+mkdir -p /opt/sysrescue/bin
+cat <<EOL> /opt/sysrescue/bin/firstboot.sh
+#!/bin/bash
+
+set -x -e
+
+ssh-keygen -A
+
+EOL
+
+systemctl enable ssh.service
+systemctl enable lldpd.service
+systemctl enable chrony.service
+systemctl enable avahi-daemon.service
+systemctl enable firstboot.service
+
 apt-get clean
 rm -rf /tmp/* ~/.bash_history
-#rm -rf /etc/ssh/ssh_host_*
+rm -rf /etc/ssh/ssh_host_*
 umount /proc
 umount /sys
 umount /dev/pts
