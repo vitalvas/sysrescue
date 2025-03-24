@@ -181,8 +181,11 @@ cat <<EOL> /opt/sysrescue/bin/firstboot.sh
 set -x -e
 
 ssh-keygen -A
+systemctl restart ssh.service
 
 EOL
+
+chmod a+x /opt/sysrescue/bin/firstboot.sh
 
 systemctl enable ssh.service
 systemctl enable lldpd.service
