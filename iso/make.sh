@@ -14,9 +14,9 @@ apt update
 apt install -qy binutils debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools dosfstools
 
 if [ ! -d "${BUILDHOME}/chroot/bin" ]; then
-    debootstrap --arch=amd64 --variant=minbase noble \
+    debootstrap --arch=amd64 --variant=minbase trixie \
         ${BUILDHOME}/chroot \
-        http://us.archive.ubuntu.com/ubuntu/
+        http://deb.debian.org/debian/
 fi
 
 chroot ${BUILDHOME}/chroot /bin/bash -x <<'EOF'
@@ -29,9 +29,9 @@ export HOME=/root
 echo "${BUILDNAME}" > /etc/hostname
 
 cat <<EOL > /etc/apt/sources.list
-deb http://us.archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
-deb http://us.archive.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
-deb http://us.archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
+deb http://deb.debian.org/debian/ trixie main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian-security/ trixie-security main contrib non-free non-free-firmware
+deb http://deb.debian.org/debian/ trixie-updates main contrib non-free non-free-firmware
 EOL
 
 apt update -qy
@@ -76,7 +76,7 @@ apt install -y --no-install-recommends \
     mdadm \
     nano \
     net-tools \
-    netplan.io \
+    ifupdown2 \
     nmap \
     nvme-cli \
     openssh-server \
@@ -87,7 +87,6 @@ apt install -y --no-install-recommends \
     sudo \
     tcpdump \
     tmux \
-    ubuntu-standard \
     vim \
     vlan \
     wget \
@@ -99,7 +98,7 @@ apt install -y --no-install-recommends \
     xfsprogs
 
 
-apt purge -qy ubuntu-pro-client ubuntu-pro-client-l10n linux-headers-generic libllvm16t64
+apt purge -qy linux-headers-generic
 dpkg -l | awk '$2~"linux-headers" {print $2}' | xargs apt purge -qy
 
 apt-get autoremove -y
@@ -107,19 +106,22 @@ dpkg-reconfigure locales
 
 echo -e "${ROOT_PASSWD}\n${ROOT_PASSWD}" | passwd root
 
-cat <<EOL> /etc/netplan/10-init.yaml
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    all:
-      match:
-        name: en*
-      dhcp4: yes
-      dhcp6: yes
-EOL
+cat <<EOL> /etc/network/interfaces.d/dhcp
+auto lo
+iface lo inet loopback
 
-chmod 600 /etc/netplan/10-init.yaml
+allow-hotplug eth0
+iface eth0 inet dhcp
+iface eth0 inet6 dhcp
+
+allow-hotplug ens3
+iface ens3 inet dhcp
+iface ens3 inet6 dhcp
+
+allow-hotplug enp0s3
+iface enp0s3 inet dhcp
+iface enp0s3 inet6 dhcp
+EOL
 
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh/
@@ -212,12 +214,12 @@ mkdir -p ${BUILDHOME}/image/{casper,isolinux,install}
 cp ${BUILDHOME}/chroot/boot/vmlinuz-**-**-generic ${BUILDHOME}/image/casper/vmlinuz
 cp ${BUILDHOME}/chroot/boot/initrd.img-**-**-generic ${BUILDHOME}/image/casper/initrd
 
-touch ${BUILDHOME}/image/ubuntu
+touch ${BUILDHOME}/image/debian
 
 DEFAULT_KERNEL_PARAM="nopersistent noprompt consoleblank=0 systemd.show_status=true panic=20 hostname=sysrescue build=${BUILDNAME}"
 
 cat <<EOF > ${BUILDHOME}/image/isolinux/grub.cfg
-search --set=root --file /ubuntu
+search --set=root --file /debian
 
 insmod efi_gop
 insmod efi_uga
@@ -279,7 +281,7 @@ cd ${BUILDHOME}
 printf $(du -sx --block-size=1 chroot | cut -f1) > ${BUILDHOME}/image/casper/filesystem.size
 
 cat <<EOF > ${BUILDHOME}/image/README.diskdefines
-#define DISKNAME  Ubuntu ${BUILDNAME}
+#define DISKNAME  Debian ${BUILDNAME}
 #define TYPE  binary
 #define TYPEbinary  1
 #define ARCH  amd64
@@ -328,7 +330,7 @@ xorriso \
     -as mkisofs \
     -iso-level 3 \
     -full-iso9660-filenames \
-    -volid "Ubuntu ${BUILDNAME}" \
+    -volid "Debian ${BUILDNAME}" \
     -output "${BUILDHOME}/${BUILDNAME}.iso" \
     -eltorito-boot boot/grub/bios.img \
     -no-emul-boot \
