@@ -116,7 +116,7 @@ case ${VERSION} in
 
   "24.04")
     if [ ! -f "ubuntu-2404-base-amd64.tar.gz" ]; then
-      wget -O ubuntu-2404-base-amd64.tar.gz https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.2-base-amd64.tar.gz
+      wget -O ubuntu-2404-base-amd64.tar.gz https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.3-base-amd64.tar.gz
     fi
     FILE_ARCHIVE="ubuntu-2404-base-amd64.tar.gz"
     ;;
