@@ -159,6 +159,10 @@ systemd-detect-virt -q && {
   pkg_install="linux-image-virtual qemu-guest-agent haveged cloud-guest-utils"
 }
 
+if ls /dev/nvme[0-9]*n[0-9]* >/dev/null 2>&1; then
+  pkg_install="${pkg_install} nvme-cli"
+fi
+
 cat <<EOF>${MOUNT_PATH}/sysinstall.sh
 #!/bin/bash
 
