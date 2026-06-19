@@ -3,7 +3,7 @@
 set -e
 
 MOUNT_PATH="/mnt"
-VERSION=${VERSION:-24.04}
+VERSION=${VERSION:-26.04}
 
 if [ ! -f "/sys/firmware/efi/config_table" ]; then
   echo "EFI Not Detected!"
@@ -136,6 +136,14 @@ case ${VERSION} in
       wget -O ubuntu-2404-base-amd64.tar.gz https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.3-base-amd64.tar.gz
     fi
     FILE_ARCHIVE="ubuntu-2404-base-amd64.tar.gz"
+    PKG_EXTRA="zstd"
+    ;;
+
+  "26.04")
+    if [ ! -f "ubuntu-2604-base-amd64.tar.gz" ]; then
+      wget -O ubuntu-2604-base-amd64.tar.gz https://cdimage.ubuntu.com/ubuntu-base/releases/26.04/release/ubuntu-base-26.04-base-amd64.tar.gz
+    fi
+    FILE_ARCHIVE="ubuntu-2604-base-amd64.tar.gz"
     PKG_EXTRA="zstd"
     ;;
 
